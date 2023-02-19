@@ -165,8 +165,7 @@ R = AxiosResponse<T> 是axios默认的数据类型,但是现在不需要它的�
 Date<T> 就是后台响应的数据类型
 直接Pormise返回
 ```
-
-![image-20230219230416390](/Users/fullversion/Library/Application Support/typora-user-images/image-20230219230416390.png)
+![](img/请求函数.png)
 
 
 
