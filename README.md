@@ -56,6 +56,7 @@ env.d.ts - Typescript类型支持文件
 index.html - 唯一HTML文件
 package.json - 依赖包(版本)
 pnpm-lock.yaml - pnpm(包管理工具)
+postcss.config.js - 移动端适配
 README.md - 项目说明文件
 tsconfig.config.json - Typescript依赖包管理文件
 tsconfig.json - Typescript依赖包管理文件
@@ -71,12 +72,38 @@ router - 路由
     index.ts - 路由配置
 services - 接口相关(API)
 store - Pinia(状态管理)
+		modules - 所有模块(不需要注册模化,只是文件分配合适才创建的)
+    		user.ts - 用户相关模块
+    index.ts - Pinia配置注册(统一导出,导入路径时少一层路径)
 styles - 全局样式
     main.scss - 项目共用样式
 types - Typescript类型
+		user.d.ts - 用户相关的类型声明
 utils - 工具函数
+    request.ts - 请求工具(二次封装axios)
 views - 路由页面
 App.vue - 根组件
 main.ts - 入口文件
 ```
-
+### 路由相关
+```typescript
+使用createRouter来创建路由
+createWebHistory 没有 #号的
+createWebHashHistory 存在 #号的
+两者都需要引入
+createWebHistory(import.meta.env.BASE_URL) 
+这个值来自 vite.config.ts 的 base 属性的值
+需要配置,默认是 /
+路由的基准路径
+假如是 '/abc' 
+整个项目的所有路径前都有 '/abc'
+```
+### 项目使用的依赖
+```typescript
+scss - css预处理语言
+pinia - 状态管理
+pinia-plugin-persistedstate - Pinia持久化存储((默认是localStorage))
+vant - ui组件库
+postcss-px-to-viewport - px转vw(移动端适配)
+axios - 请求工具
+```
