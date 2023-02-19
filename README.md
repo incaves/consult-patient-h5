@@ -86,7 +86,7 @@ App.vue - 根组件
 main.ts - 入口文件
 ```
 ### 路由相关
-```typescript
+```type
 使用createRouter来创建路由
 createWebHistory 没有 #号的
 createWebHashHistory 存在 #号的
@@ -107,3 +107,68 @@ vant - ui组件库
 postcss-px-to-viewport - px转vw(移动端适配)
 axios - 请求工具
 ```
+
+### axios封装请求函数
+
+> 没有类型时的请求函数
+
+```typescript
+const request = (url: string, method: string, submitData: object) => {
+  return instance.request({
+    url,
+    method, 
+    [method.toLowerCase() === 'get' ? 'params' : 'data']: submitData 
+  })
+}
+```
+
+> 存在类型
+>
+> 泛型
+
+```typescript
+// 没有类型时,不合适的点
+method的类型时stirng,传递什么普通字符串都可以
+// 使用axios,自带的类型 Method
+axios规定了只能写一些请求方式:get post delete put...
+// 配置
+method的默认是get请求
+submitData不是所有都是提交数据,所以是可选的 "?"
+// 返回的数据类型
+type Data<T> = { // 接收传递的类型
+  code: number
+  message: string
+  data: T // 使用传递的数据类型
+}
+// 更改之后的代码
+// 这个T是函数接收的类型
+const request = <T>(url: string,method: Method = 'get',submitData?: object) => {
+                 // 第一个T 是接收数据的类型
+                 // 第二个T 也是接收数据的类型,同时替换axios默认的数据类型
+  return instance.request<T, Data<T>>({
+    url, // 地址
+    method, // 请求方式
+    [method.toLowerCase() === 'get' ? 'params' : 'data']: submitData // 数据
+  })
+}
+```
+
+```typescript
+假如现在是文章请求
+<id:number,title:stinrg> 文章请求需要的的类型
+request<id:number,title:stinrg>{'/actilce','get'}.then((res)=>{
+})
+```
+
+```
+R = AxiosResponse<T> 是axios默认的数据类型,但是现在不需要它的默认类型
+Date<T> 就是后台响应的数据类型
+直接Pormise返回
+```
+
+![image-20230219230416390](/Users/fullversion/Library/Application Support/typora-user-images/image-20230219230416390.png)
+
+
+
+
+
