@@ -62,10 +62,8 @@ const request = <T>(
     url, // 地址
     method, // 请求方式
     // 区分get和其他请求(post,delete...)
-    // get提交数据,选项:params
-    // 其他请求提交数据,选项:data
-    // [] 包裹的表示一个动态属性
+    // get提交数据,选项:params | 其他请求提交数据,选项:data([] 包裹的表示一个动态属性)
     [method.toLowerCase() === 'get' ? 'params' : 'data']: submitData // 数据
   })
 }
-export default { baseURL, instance }
+export { baseURL, instance, request }
