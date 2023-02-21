@@ -66,11 +66,15 @@ vite.config.js - wepack配置文件
 ```typescript
 assets - 静态资源(也可能包括css代码)
 components - 全局通用组件(重复的组件)
+    CpNavBar.vue - 顶部导航栏
+    CpIcon.vue - Icon组件(svg)
+    CpRadioBtn.vue - 单选按钮(很多页面中,都用到了)
 composable - 组合式功能通用函数
-icons - svg图标
+icons - svg图标(使用插件打包成一个文件)
 router - 路由
     index.ts - 路由配置
 services - 接口相关(API)
+    user.ts - 用户相关的接口请求
 store - Pinia(状态管理)
 		modules - 所有模块(不需要注册模化,只是文件分配合适才创建的)
     		user.ts - 用户相关模块
@@ -79,9 +83,21 @@ styles - 全局样式
     main.scss - 项目共用样式
 types - Typescript类型
 		user.d.ts - 用户相关的类型声明
+    components.d.ts - 给组件声明类型
+    vue-router.vue - 给vue-routers声明类型
 utils - 工具函数
     request.ts - 请求工具(二次封装axios)
+    rules.ts - 表单校验
 views - 路由页面
+    Layout - 布局容器(二级路由展示区在上方,下方是导航栏)
+      index.vue - 布局
+    Login - 登录页面
+    Article - 健康百科(没有进行开发)
+    Home - 首页
+    Notify - 消息通知(没有进行开发)
+    User - 个人信息页面
+      index.vue - 个人信息页面布局
+      PatientPage.vue - 家庭档案
 App.vue - 根组件
 main.ts - 入口文件
 ```
@@ -106,6 +122,8 @@ pinia-plugin-persistedstate - Pinia持久化存储((默认是localStorage))
 vant - ui组件库
 postcss-px-to-viewport - px转vw(移动端适配)
 axios - 请求工具
+unplugin-vue-components - ui组件自动按需加载
+vite-plugin-svg-icons - 将(icons文件下的svg)打包成一个文件(格式:icon-login-eye-off)
 ```
 
 ### axios封装请求函数
@@ -138,12 +156,12 @@ submitData不是所有都是提交数据,所以是可选的 "?"
 type Data<T> = { // 接收传递的类型
   code: number
   message: string
-  data: T // 使用传递的数据类型
+  data: T // 使用传递的数据类型(文件中使用请求的数据时,会有良好的提示效果)
 }
 // 更改之后的代码
 // 这个T是函数接收的类型
 const request = <T>(url: string,method: Method = 'get',submitData?: object) => {
-                 // 第一个T 是接收数据的类型
+                 // 第一个T 是接收数据的类型(没有什么用)
                  // 第二个T 也是接收数据的类型,同时替换axios默认的数据类型
   return instance.request<T, Data<T>>({
     url, // 地址
@@ -166,8 +184,76 @@ Date<T> 就是后台响应的数据类型
 直接Pormise返回
 ```
 ![](img/请求函数.png)
+### 路由
+``` 
+存在下方标签栏的是二级路由
+整个页面发生切换,也就是说没有下方的标签栏栏,就是一级路由
+```
+### 全局注册组件
+>如果使用了unplugin-vue-components,会自动导入组件
+>而且components中的组件,也会自动导入
 
+### 导航守卫
+>Vue3中的导航守卫没有next,使用return true ｜ 什么也不写
+>如果拦截某个页面 return '路由地址'
 
+### v-model
+```typescript
+Vue2(三种写法)
+<Test v-model="count" /> | <Test xxx.sync="msg" /> 
+<Test xxx.sync="msg" />  | <Test @input="count=$event" /> 
+<Test :xxx="msg" /> | <Test @update:xxx="msg=$event" />
+.sync也可以完成双向数据绑定
+Vue3
+父组件:
+const count = ref(100)
+const msg = ref('msg')
+// 传递值,并接收值
+<Modle :modelValue="count" @update:modleValue="count = $event"/>
+// Vue3中可以多次传递(多个v-model写法)
+<Modle v-model="count" v-model:msg="msg" @update:modleValue="count = $event"/>
+子组件:
+definProps<{
+ modelValue:number
+ msg:string
+}>()
+// update:modleValue 就是简单的方法名
+const emit = defineEmit<{
+   (e:"update:modleValue",count:number):void
+}>()
+<div>{{modeleValue}}</div>
+<button @clicl="emit('update:modleValue',modleValue + 1)"></button>
+```
 
-
-
+### 单选框的封装逻辑分析
+>假如单选框传递的是 男 ｜ 女 - 默认是男被选中
+```c
+// 父组件
+// 准备传递的数据和被默认选中的值
+const options = [
+  { label: '男', value: 1 },
+  { label: '女', value: 0 }
+]
+const gender = ref(1)
+// 多个数据传递
+<cp-radio-btn :options="options" :model-value="gender" @update:model-value="gender = $event as number" /> 
+// 简写方式
+<cp-radio-btn :options="options" v-model="gender" />
+```
+```c
+// 子组件
+defineProps<{
+  options: {
+    label: string // 接收(男,女的文字)
+    value: number | string // (接收0和1)
+  }[]
+  modelValue?: string | number // 接收谁被选中
+}>()
+// 修改父组件的值
+const emit = defineEmits<{
+  // 事件名称和最新的值,传递给父组件
+  (e: 'update:modelValue', value: number | string): void
+}>()
+// 循环创建接收的文字,并触发自定义事件
+<a :class="{ active: modelValue === item.value }" v-for="item in options":key="item.value"
+@click="emit('update:modelValue', item.value)">{{ item.label }}</a>

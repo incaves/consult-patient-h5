@@ -23,14 +23,7 @@ const onClickRight = () => {
 defineProps<{ title?: string; rightText?: string }>()
 </script>
 <template>
-  <VanNavBar
-    left-arrow
-    fixed
-    :title="title"
-    :right-text="rightText"
-    @click-left="onClickLeft"
-    @click-right="onClickRight"
-  />
+  <VanNavBar left-arrow fixed :title="title" :right-text="rightText" @click-left="onClickLeft" @click-right="onClickRight" />
 </template>
 
 <style scoped lang="scss">
