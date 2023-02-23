@@ -1,6 +1,7 @@
 import { useUserStore } from '@/stores'
 import { createRouter, createWebHistory } from 'vue-router'
-
+import NProgress from 'nprogress'
+import 'nprogress/nprogress.css'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -40,13 +41,28 @@ const router = createRouter({
       path: '/user/patient',
       component: () => import('@/views/User/PatientPage.vue'),
       meta: { title: '家庭档案' }
+    },
+    {
+      path: '/consult/fast',
+      component: () => import('@/views/Consult/ConsultFast.vue'),
+      meta: { title: '极速问诊' }
+    },
+    {
+      path: '/consult/dep',
+      component: () => import('@/views/Consult/ConsultDep.vue'),
+      meta: { title: '选择科室' }
+    },
+    {
+      path: '/consult/illness',
+      component: () => import('@/views/Consult/ConsultIllness.vue'),
+      meta: { title: '病情描述' }
     }
   ]
 })
-// 导航守卫
+// 导航前置守卫
 router.beforeEach((to) => {
-  // 页面切换时,更改当前页面的标题
-  document.title = `优医问诊-${to.meta.title || ''}`
+  // 开启进度条
+  NProgress.start()
   const whiteList = ['/login'] // 白名单(没有权限的路由)
   const store = useUserStore()
   // 没有token,并且访问的页面不在白名单中,跳转到登录页
@@ -55,3 +71,13 @@ router.beforeEach((to) => {
   // 什么也不写,也是放行
 })
 export default router
+// 导航后置守卫
+router.afterEach((to) => {
+  // 页面切换时,更改当前页面的标题
+  document.title = `149优医问诊-${to.meta.title || ''}`
+  NProgress.done()
+})
+//关闭转圈效果
+NProgress.configure({
+  showSpinner: false
+})

@@ -69,31 +69,45 @@ components - 全局通用组件(重复的组件)
     CpNavBar.vue - 顶部导航栏
     CpIcon.vue - Icon组件(svg)
     CpRadioBtn.vue - 单选按钮(很多页面中,都用到了)
-composable - 组合式功能通用函数
+composable - 组合式功能通用函数(Hooks)
+enums - 枚举(枚举的值经常需要在运行的时候使用)
 icons - svg图标(使用插件打包成一个文件)
 router - 路由
     index.ts - 路由配置
 services - 接口相关(API)
     user.ts - 用户相关的接口请求
+    consult.ts - 文章相关的接口请求
 store - Pinia(状态管理)
 		modules - 所有模块(不需要注册模化,只是文件分配合适才创建的)
     		user.ts - 用户相关模块
+        consult.ts - 记录病情模块(也就是点击极速问诊的每一步操作进行记录)
     index.ts - Pinia配置注册(统一导出,导入路径时少一层路径)
 styles - 全局样式
     main.scss - 项目共用样式
 types - Typescript类型
 		user.d.ts - 用户相关的类型声明
     components.d.ts - 给组件声明类型
+    consult.d.ts - 文章相关的类型声明
     vue-router.vue - 给vue-routers声明类型
 utils - 工具函数
     request.ts - 请求工具(二次封装axios)
     rules.ts - 表单校验
 views - 路由页面
+    Consult - 问诊(点击极速问诊)
+      ConsultFast.vue - 极速问诊页面 
+      ConsultDep.vue - 选择科室
+      ConsultIllness.vue - 图文问诊
     Layout - 布局容器(二级路由展示区在上方,下方是导航栏)
       index.vue - 布局
     Login - 登录页面
     Article - 健康百科(没有进行开发)
     Home - 首页
+      components - 首页公用组件
+        KnowledgeList.vue(每条新闻的布局容器(渲染的也是它))
+        KnowledgeCard.vue(每条新闻)
+        FollowDoctor.vue(推荐关注医生的结构-框架)
+        DoctorCard.vue(每个医生卡片)
+      index.vue - 首页布局
     Notify - 消息通知(没有进行开发)
     User - 个人信息页面
       index.vue - 个人信息页面布局
@@ -197,34 +211,6 @@ Date<T> 就是后台响应的数据类型
 >Vue3中的导航守卫没有next,使用return true ｜ 什么也不写
 >如果拦截某个页面 return '路由地址'
 
-### v-model
-```typescript
-Vue2(三种写法)
-<Test v-model="count" /> | <Test xxx.sync="msg" /> 
-<Test xxx.sync="msg" />  | <Test @input="count=$event" /> 
-<Test :xxx="msg" /> | <Test @update:xxx="msg=$event" />
-.sync也可以完成双向数据绑定
-Vue3
-父组件:
-const count = ref(100)
-const msg = ref('msg')
-// 传递值,并接收值
-<Modle :modelValue="count" @update:modleValue="count = $event"/>
-// Vue3中可以多次传递(多个v-model写法)
-<Modle v-model="count" v-model:msg="msg" @update:modleValue="count = $event"/>
-子组件:
-definProps<{
- modelValue:number
- msg:string
-}>()
-// update:modleValue 就是简单的方法名
-const emit = defineEmit<{
-   (e:"update:modleValue",count:number):void
-}>()
-<div>{{modeleValue}}</div>
-<button @clicl="emit('update:modleValue',modleValue + 1)"></button>
-```
-
 ### 单选框的封装逻辑分析
 >假如单选框传递的是 男 ｜ 女 - 默认是男被选中
 ```c
@@ -236,9 +222,10 @@ const options = [
 ]
 const gender = ref(1)
 // 多个数据传递
-<cp-radio-btn :options="options" :model-value="gender" @update:model-value="gender = $event as number" /> 
+<cp-radio-btn :options="options" :model-value="patient.gender" @update:model-value="patient.gender = $event as number" /> 
 // 简写方式
-<cp-radio-btn :options="options" v-model="gender" />
+// v-model 相当于直接做传递值的,修改值的操作
+<cp-radio-btn v-model="patient.gender" :options="options"></cp-radio-btn>
 ```
 ```c
 // 子组件
@@ -257,3 +244,29 @@ const emit = defineEmits<{
 // 循环创建接收的文字,并触发自定义事件
 <a :class="{ active: modelValue === item.value }" v-for="item in options":key="item.value"
 @click="emit('update:modelValue', item.value)">{{ item.label }}</a>
+```
+### 一些问题
+>推荐关注医生
+>使用vant的轮播图,每次滑动的宽度是150
+>就会导致如果,屏幕不在375的设备下,可能会出现很多卡片叠在一起的情况
+>需要动态的设置滑动的宽度
+>>原生解决(只解决了竖屏)
+```javascript
+const width = ref(0)
+const setWidth = () => (width.value = (150 / 375) * window.innerWidth)
+onMounted(() => {
+  setWidth()
+  // 当触发resize(当浏览器发生改变时触发)时,重新调用setWidth函数
+  window.addEventListener('resize', setWidth)
+})
+onUnmounted(() => {
+  window.removeEventListener('resize', setWidth)
+})
+```
+>>解决方式:使用VueUse的 'useWindowSize' 来解决
+```javascript
+import { useWindowSize } from '@vueuse/core'
+const { width } = useWindowSize()
+:width="(150 / 375) * width" 
+( 滑块的宽度 / 设备的宽度) * 当前设备的宽度
+```

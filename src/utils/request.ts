@@ -53,11 +53,7 @@ type Data<T> = {
   message: string
   data: T
 }
-const request = <T>(
-  url: string,
-  method: Method = 'get',
-  submitData?: object
-) => {
+const request = <T>(url: string, method: Method = 'get', submitData?: object) => {
   return instance.request<T, Data<T>>({
     url, // 地址
     method, // 请求方式

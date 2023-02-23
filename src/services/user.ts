@@ -46,3 +46,24 @@ export const getUserInfo = () => {
 export const getPatientList = () => {
   return request<Patient[]>('/patient/mylist')
 }
+/**
+ * @patient是传递的用户对象
+ */
+// 添加患者
+export const addPatient = (patient: Patient) => {
+  return request('/patient/add', 'POST', patient)
+}
+/**
+ * @patient是传递的用户对象
+ */
+// 编辑患者
+export const editPatient = (patient: Patient) => {
+  return request('/patient/update', 'PUT', patient)
+}
+/**
+ *
+ * @id删除的患者id
+ */
+export const delPatient = (id: string) => {
+  return request(`/patient/del/${id}`, 'DELETE')
+}

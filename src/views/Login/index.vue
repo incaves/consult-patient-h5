@@ -113,7 +113,6 @@ onUnmounted(() => {
     </div>
   </div>
 </template>
-
 <style scoped lang="scss">
 .login {
   &-page {
