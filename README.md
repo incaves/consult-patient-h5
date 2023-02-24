@@ -138,6 +138,7 @@ postcss-px-to-viewport - px转vw(移动端适配)
 axios - 请求工具
 unplugin-vue-components - ui组件自动按需加载
 vite-plugin-svg-icons - 将(icons文件下的svg)打包成一个文件(格式:icon-login-eye-off)
+nprogress - 进度条
 ```
 
 ### axios封装请求函数
@@ -192,28 +193,28 @@ request<id:number,title:stinrg>{'/actilce','get'}.then((res)=>{
 })
 ```
 
-```
+```javascript
 R = AxiosResponse<T> 是axios默认的数据类型,但是现在不需要它的默认类型
 Date<T> 就是后台响应的数据类型
 直接Pormise返回
 ```
 ![](img/请求函数.png)
 ### 路由
-``` 
+```javascript
 存在下方标签栏的是二级路由
 整个页面发生切换,也就是说没有下方的标签栏栏,就是一级路由
-```
+```javascript
 ### 全局注册组件
 >如果使用了unplugin-vue-components,会自动导入组件
 >而且components中的组件,也会自动导入
-
+```
 ### 导航守卫
 >Vue3中的导航守卫没有next,使用return true ｜ 什么也不写
 >如果拦截某个页面 return '路由地址'
 
 ### 单选框的封装逻辑分析
 >假如单选框传递的是 男 ｜ 女 - 默认是男被选中
-```c
+```javascript
 // 父组件
 // 准备传递的数据和被默认选中的值
 const options = [
@@ -227,7 +228,7 @@ const gender = ref(1)
 // v-model 相当于直接做传递值的,修改值的操作
 <cp-radio-btn v-model="patient.gender" :options="options"></cp-radio-btn>
 ```
-```c
+```javascript
 // 子组件
 defineProps<{
   options: {

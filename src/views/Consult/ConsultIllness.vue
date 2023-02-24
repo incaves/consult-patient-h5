@@ -7,10 +7,10 @@ const form = ref<ConsultIllness>({
   illnessDesc: '',
   illnessTime: undefined,
   consultFlag: undefined,
-  pictures: []
+  pictures: [] // 图片数组
 })
 // 多选框
-// 并且规定类型
+// options的数据(进行整理,需要传递给子组件进行循环渲染)
 const timeOptions = [
   { label: '一周内', value: ConsultTime.Week },
   { label: '一月内', value: ConsultTime.Month },
