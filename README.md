@@ -97,6 +97,7 @@ views - 路由页面
       ConsultFast.vue - 极速问诊页面 
       ConsultDep.vue - 选择科室
       ConsultIllness.vue - 图文问诊
+      ConsultPay.vue - 支付
     Layout - 布局容器(二级路由展示区在上方,下方是导航栏)
       index.vue - 布局
     Login - 登录页面
@@ -111,7 +112,7 @@ views - 路由页面
     Notify - 消息通知(没有进行开发)
     User - 个人信息页面
       index.vue - 个人信息页面布局
-      PatientPage.vue - 家庭档案
+      PatientPage.vue - 家庭档案 | 选择患者
 App.vue - 根组件
 main.ts - 入口文件
 ```
@@ -270,4 +271,10 @@ import { useWindowSize } from '@vueuse/core'
 const { width } = useWindowSize()
 :width="(150 / 375) * width" 
 ( 滑块的宽度 / 设备的宽度) * 当前设备的宽度
+```
+### 支付宝支付
+```c
+买家账号:jfjbwb4477@sandbox.com
+登录密码:111111
+支付密码:111111
 ```

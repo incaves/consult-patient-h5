@@ -38,5 +38,7 @@ export const useConsultStore = defineStore(
       clear
     }
   },
-  {}
+  {
+    persist: true // 开启数据持久化
+  }
 )

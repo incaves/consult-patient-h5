@@ -4,11 +4,15 @@ import type { Patient } from '@/types/user'
 import { showConfirmDialog, type FormInstance, showToast, showSuccessToast } from 'vant'
 import { nameRules, idCardRules } from '@/utils/rules'
 import { ref, onMounted, computed } from 'vue'
+import { useRoute } from 'vue-router'
+import { useConsultStore } from '@/stores'
+import { useRouter } from 'vue-router'
 const list = ref<Patient[]>([]) // 存储的数据是Patient形式的数组
 // 因为每次添加后要更新,重新声明一个方法
 const getList = async () => {
   const res = await getPatientList()
   list.value = res.data
+  changeDefaultatient()
 }
 onMounted(() => {
   getList()
@@ -89,13 +93,60 @@ const remove = async () => {
     showSuccessToast('删除成功')
   }
 }
+// 此组件还有可能是选择患者的页面
+// 是否是选择患者
+const route = useRoute()
+const isChange = computed(() => route.query.isChange === '1')
+const patientId = ref<string>() // 保存选中的患者
+// 点击保存患者
+const selectedPatient = (item: Patient) => {
+  if (isChange.value) {
+    patientId.value = item.id // 保存每个患者
+  }
+}
+// 默认选中
+const changeDefaultatient = () => {
+  if (isChange.value && list.value.length) {
+    // 找默认的患者的id
+    const defaultPatient = list.value.find((item) => {
+      item.defaultFlag === 1
+    })
+    // 如果有默认患者
+    if (defaultPatient) {
+      patientId.value = defaultPatient.id
+    }
+    // 没有默认,选择第一个
+    if (!defaultPatient) {
+      patientId.value = list.value[0].id
+    }
+  }
+}
+// 点击下一步
+const store = useConsultStore()
+const router = useRouter()
+const next = () => {
+  if (!patientId.value) return showToast('请选就诊择患者')
+  store.setPatient(patientId.value) // 记录步骤
+  router.push('/consult/pay') // 页面跳转
+}
 </script>
 
 <template>
   <div class="patient-page">
-    <CpNavBar title="家庭档案" />
+    <CpNavBar :title="isChange ? '选择患者' : '家庭档案'" />
+    <!-- 选择患者页面的头部提示 -->
+    <div class="patient-change" v-if="isChange">
+      <h3>请选择患者信息</h3>
+      <p>以便医生给出更准确的治疗，信息仅医生可见</p>
+    </div>
     <div class="patient-list">
-      <div class="patient-item" v-for="item in list" :key="item.id">
+      <div
+        class="patient-item"
+        v-for="item in list"
+        :key="item.id"
+        @click="selectedPatient(item)"
+        :class="{ selected: patientId === item.id }"
+      >
         <div class="info">
           <span class="name">{{ item.name }}</span>
           <span class="id">{{ item.idCard.replace(/^(.{6}).+(.{4})$/, '\$1********\$2') }}</span>
@@ -140,6 +191,10 @@ const remove = async () => {
         <van-action-bar-button @click="remove">删除</van-action-bar-button>
       </van-action-bar>
     </van-popup>
+    <!-- 选择患者时的底部按钮 -->
+    <div class="patient-next" v-if="isChange">
+      <van-button type="primary" @click="next" round block>下一步</van-button>
+    </div>
   </div>
 </template>
 
@@ -241,5 +296,25 @@ const remove = async () => {
     color: var(--cp-price);
     background-color: var(--cp-bg);
   }
+}
+.patient-change {
+  padding: 15px;
+  > h3 {
+    font-weight: normal;
+    margin-bottom: 5px;
+  }
+  > p {
+    color: var(--cp-text3);
+  }
+}
+.patient-next {
+  padding: 15px;
+  background-color: #fff;
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 80px;
+  box-sizing: border-box;
 }
 </style>

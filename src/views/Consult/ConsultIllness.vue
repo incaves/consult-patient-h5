@@ -1,7 +1,12 @@
 <script setup lang="ts">
-import type { ConsultIllness } from '@/types/consult'
-import { ref } from 'vue'
+import type { ConsultIllness, Image } from '@/types/consult'
+import { ref, computed, onMounted } from 'vue'
 import { ConsultTime } from '@/enums'
+import { uploadImage } from '@/services/consult'
+import type { UploaderAfterRead, UploaderFileListItem } from 'vant/lib/uploader/types'
+import { showToast, showConfirmDialog } from 'vant'
+import { useConsultStore } from '@/stores'
+import { useRouter } from 'vue-router'
 // 患者的表单数据
 const form = ref<ConsultIllness>({
   illnessDesc: '',
@@ -21,6 +26,72 @@ const flagOptions = [
   { label: '就诊过', value: 0 },
   { label: '没就诊过', value: 1 }
 ]
+// 保存图片文件的数组
+const fileList = ref<Image[]>([])
+// 上传图片后做的事情(UploaderAfterRead = vant定义的类型)
+// 只处理一次上传一张图
+const onAfterRead: UploaderAfterRead = async (item) => {
+  // 类型守卫
+  if (Array.isArray(item)) return // 如果是图片数组不处理
+  if (!item.file) return // 不存在
+  // 开始上传(开启loading)
+  item.status = 'uploading'
+  item.message = '上传中...'
+  uploadImage(item.file)
+    .then((res) => {
+      item.status = 'done' // 关闭状态
+      item.message = undefined // 清空文字
+      item.url = res.data.url // 展示图片
+      form.value.pictures?.push(res.data) // 提交到form中,用于上传到后台
+    })
+    .catch(() => {
+      item.status = 'failed'
+      item.message = '上传失败'
+    })
+}
+// 删除图片
+const onDeleteImg = (item: UploaderFileListItem) => {
+  // vant会自动有删除的操作(视图会删除)
+  // 但存储在form中的数据不会被删除
+  // 点击的图片的item和存储的item的url相等时进行删除操作
+  form.value.pictures = form.value.pictures?.filter((pic) => pic.url !== item.url)
+}
+// 下一步按钮的操作
+// 按钮的样式
+// 只有三者都为true的情况下才会显示disabled样式
+const disabled = computed(
+  () => !form.value.illnessDesc || form.value.illnessTime === undefined || form.value.consultFlag === undefined
+)
+// 按钮的操作
+const store = useConsultStore()
+const router = useRouter()
+const next = () => {
+  if (!form.value.illnessDesc) return showToast('请输入病情描述')
+  if (form.value.illnessTime === undefined) return showToast('请选择症状持续时间')
+  if (form.value.consultFlag === undefined) return showToast('请选择是否已经就诊')
+  store.setIllness(form.value) // 保存步骤
+  // 跳转档案管理,需要根据isChange实现选择功能
+  router.push('/user/patient?isChange=1')
+}
+// 数据回显
+onMounted(() => {
+  // 选择了数据才会进行提示(这里判断的是时间的,他存在其余两个肯定也存在)
+  if (store.consult.illnessDesc) {
+    showConfirmDialog({
+      title: '温馨提示',
+      message: '是否恢复您之前填写的病情信息呢？',
+      closeOnPopstate: false // 回退也需要弹窗
+    }).then(() => {
+      // 点击了确认
+      // 取出来数据
+      const { illnessDesc, illnessTime, consultFlag, pictures } = store.consult
+      // 进行赋值
+      form.value = { illnessDesc, illnessTime, consultFlag, pictures }
+      // 图片回显
+      fileList.value = pictures || []
+    })
+  }
+})
 </script>
 
 <template>
@@ -51,6 +122,20 @@ const flagOptions = [
         <p>此次病情是否去医院就诊过？</p>
         <cp-radio-btn :options="flagOptions" v-model="form.consultFlag" />
       </div>
+      <div class="illness-img">
+        <van-uploader
+          upload-icon="photo-o"
+          upload-text="上传图片"
+          max-count="9"
+          :max-size="5 * 1024 * 1024"
+          v-model="fileList"
+          :after-read="onAfterRead"
+          @delete="onDeleteImg"
+        ></van-uploader>
+        <p class="tip" v-if="!fileList.length">上传内容仅医生可见,最多9张图,最大5MB</p>
+      </div>
+      <!-- 删除按钮 -->
+      <van-button :class="{ disabled }" @click="next" type="primary" block round>下一步</van-button>
     </div>
   </div>
 </template>
@@ -108,6 +193,53 @@ const flagOptions = [
       color: var(--cp-text3);
       padding: 15px 0;
     }
+  }
+}
+.illness-img {
+  padding-top: 16px;
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  .tip {
+    font-size: 12px;
+    color: var(--cp-tip);
+  }
+  ::v-deep() {
+    .van-uploader {
+      &__preview {
+        &-delete {
+          left: -6px;
+          top: -6px;
+          border-radius: 50%;
+          background-color: var(--cp-primary);
+          width: 20px;
+          height: 20px;
+          &-icon {
+            transform: scale(0.9) translate(-22%, 22%);
+          }
+        }
+        &-image {
+          border-radius: 8px;
+          overflow: hidden;
+        }
+      }
+      &__upload {
+        border-radius: 8px;
+      }
+      &__upload-icon {
+        color: var(--cp-text3);
+      }
+    }
+  }
+}
+.van-button {
+  font-size: 16px;
+  margin-bottom: 30px;
+  &.disabled {
+    opacity: 1;
+    background: #fafafa;
+    color: #d9dbde;
+    border: #fafafa;
   }
 }
 </style>
