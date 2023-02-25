@@ -84,6 +84,8 @@ store - Pinia(状态管理)
     index.ts - Pinia配置注册(统一导出,导入路径时少一层路径)
 styles - 全局样式
     main.scss - 项目共用样式
+    room.scss - 问诊室各类消息的样式
+    login.scss
 types - Typescript类型
 		user.d.ts - 用户相关的类型声明
     components.d.ts - 给组件声明类型
@@ -110,6 +112,12 @@ views - 路由页面
         DoctorCard.vue(每个医生卡片)
       index.vue - 首页布局
     Notify - 消息通知(没有进行开发)
+    Room - 问诊式
+      components - 组件
+        RoomStatus.vue - 问诊室状态(可能是接诊,可能是咨询中,可能是已结束) - 需要根据订单状态来判断
+        RoomAction.vue - 问诊室对话框
+        RoomMessage.vue - 消息(聊天内容)
+      index.vue - 问诊室布局
     User - 个人信息页面
       index.vue - 个人信息页面布局
       PatientPage.vue - 家庭档案 | 选择患者
