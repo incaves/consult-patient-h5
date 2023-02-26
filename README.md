@@ -90,6 +90,7 @@ types - Typescript类型
 		user.d.ts - 用户相关的类型声明
     components.d.ts - 给组件声明类型
     consult.d.ts - 文章相关的类型声明
+    room.d.ts - 问诊室相关的类型声明
     vue-router.vue - 给vue-routers声明类型
 utils - 工具函数
     request.ts - 请求工具(二次封装axios)
